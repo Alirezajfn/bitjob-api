@@ -34,7 +34,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Third Party
     'rest_framework',
+    'rest_framework_simplejwt',
+
+    # Bitjob Apps
+    'authentications.apps.AuthenticationsConfig',
 ]
 
 MIDDLEWARE = [
