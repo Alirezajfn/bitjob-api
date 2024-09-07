@@ -61,6 +61,7 @@ class VerifyRegistrationCodeSerializer(serializers.Serializer):
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=128, required=True)
     password = serializers.CharField(max_length=128, write_only=True, required=True)
     confirm_password = serializers.CharField(max_length=128, write_only=True, required=True)
 
@@ -74,14 +75,14 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             'confirm_password'
         ]
 
-        extra_kwargs = {
-            'username': {'read_only': True}
-        }
-
     def validate(self, attrs):
+        username = attrs['username']
         email = attrs['email']
         password = attrs['password']
         confirm_password = attrs['confirm_password']
+
+        if get_user_model().objects.filter(username=username).exists():
+            raise ValidationError(_('Username already exists'))
 
         if not password == confirm_password:
             raise ValidationError(_('Passwords mismatch'))
