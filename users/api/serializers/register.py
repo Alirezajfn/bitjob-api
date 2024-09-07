@@ -1,10 +1,63 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from authentications.services.jwt import get_jwt_tokens_for_user
+from config import settings
+from users.api.validators import is_registered_before, is_email_verified
+from users.services.registration import _send_registration_code
+from users.services.token_utils import _add_verified_email_to_redis
+
+
+class CheckEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+class SendRegistrationCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+    def validate(self, attrs):
+        email = attrs['email']
+
+        is_registered_before(email)
+
+        email_key = f'{email}{settings.REGISTRATION_EMAIL_REDIS_KEY_POSTFIX}'
+        value = cache.get(email_key)
+        if value:
+            raise ValidationError(
+                _('Registration code has been send already, please wait until it expires'))
+
+        return attrs
+
+    def create(self, validated_data):
+        email = validated_data['email']
+        _send_registration_code(email)
+        return validated_data
+
+
+class VerifyRegistrationCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    registration_code = serializers.IntegerField(required=True, allow_null=False)
+
+    def validate(self, attrs):
+        email = attrs['email']
+        registration_code = attrs['registration_code']
+
+        sent_registration_code = cache.get(f'{email}{settings.REGISTRATION_EMAIL_REDIS_KEY_POSTFIX}')
+        is_registered_before(email)
+
+        if not sent_registration_code:
+            raise ValidationError(_('You have no recent registration code or the sent code has been expired '))
+
+        if not int(registration_code) == int(sent_registration_code):
+            raise ValidationError(_('Not Such Registration Code Found'))
+
+        _add_verified_email_to_redis(email, postfix=settings.VERIFIED_REGISTERED_EMAIL_REDIS_KEY_POSTFIX)
+
+        return attrs
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -21,8 +74,11 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             'confirm_password'
         ]
 
+        extra_kwargs = {
+            'username': {'read_only': True}
+        }
+
     def validate(self, attrs):
-        username = attrs.get('username', None)
         email = attrs['email']
         password = attrs['password']
         confirm_password = attrs['confirm_password']
@@ -31,32 +87,21 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             raise ValidationError(_('Passwords mismatch'))
 
         validate_password(password)
+        is_registered_before(email)
+        is_email_verified(email, postfix=settings.VERIFIED_REGISTERED_EMAIL_REDIS_KEY_POSTFIX)
 
-        if username:
-            exists = get_user_model().objects.filter(username=username).exists()
-            if exists:
-                ValidationError(_('Chosen Username Exists'))
-
-        if email:
-            exists = get_user_model().objects.filter(email=email).exists()
-            if exists:
-                ValidationError(_('Chosen Email Exists'))
+        cache.delete(f'{email}{settings.REGISTRATION_EMAIL_REDIS_KEY_POSTFIX}')
+        cache.delete(f'{email}{settings.VERIFIED_REGISTERED_EMAIL_REDIS_KEY_POSTFIX}')
 
         return attrs
 
     def create(self, validated_data):
-        instance = get_user_model().objects.create(
-            email=validated_data['email'],
-            username=validated_data['username']
-        )
+        instance = get_user_model().objects.create(email=validated_data['email'])
         instance.set_password(validated_data['password'])
         instance.save()
         return instance
 
     def to_representation(self, instance):
-        """
-        Add tokens to the response
-        """
         data = super(RegisterUserSerializer, self).to_representation(instance)
         tokens = get_jwt_tokens_for_user(instance)
         data.update(tokens)
