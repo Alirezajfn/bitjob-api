@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
     # Bitjob Apps
     'authentications.apps.AuthenticationsConfig',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
