@@ -1,34 +1,30 @@
-from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from users.managers import CustomUserManager
 
 
 class User(AbstractUser):
     objects = CustomUserManager()
-    email = models.EmailField(unique=True)
-    REQUIRED_FIELDS = ['email']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
 
-    groups = models.ManyToManyField(
-        'auth.Group',
-        verbose_name=_('groups'),
-        blank=True,
-        help_text=_('The groups this user belongs to. A group represents a collection of users who have'
-                    ' certain permissions.'),
-        related_name="user_set_custom",
-        related_query_name="user_custom",
-    )
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        verbose_name=_('user permissions'),
-        blank=True,
-        help_text=_('Specific permissions for this user.'),
-        related_name="user_perm_set_custom",
-        related_query_name="user_permission_custom",
-    )
+    username = models.CharField(max_length=150, unique=True)
+
+    email = models.EmailField(unique=True)
+    mobile = models.CharField(max_length=11, unique=True, null=True)
 
     class Meta:
         indexes = [
+            models.Index(fields=['username', ]),
             models.Index(fields=['email', ]),
         ]
+
+    @property
+    def full_name(self):
+        full_name = "%s %s" % (self.first_name, self.last_name)
+        return full_name.strip()
+
+    def delete(self, using=None, keep_parents=False):
+        raise models.ProtectedError(_("delete is not allowed in RUser model."), self)
