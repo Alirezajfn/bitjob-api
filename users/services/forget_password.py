@@ -1,7 +1,7 @@
 from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
 
-from utils.background_tasks.tasks import send_mail_in_background
+from mail.tasks import send_mail_in_background
 from config import settings
 from users.services.token_utils import _add_code_to_redis
 
@@ -13,12 +13,6 @@ def _send_forget_password_code(email: str):
 
     code = _add_code_to_redis(email, postfix=settings.FORGET_PASSWORD_EMAIL_REDIS_KEY_POSTFIX)
     email_message = _(f'Forget Password Code: {code}')
-
-    # MailSenderManager().send(
-    #     to_email=email,
-    #     message=email_message,
-    #     title=_('Romina Forget Password Code')
-    # )
 
     send_mail_in_background.apply_async(
         kwargs={
