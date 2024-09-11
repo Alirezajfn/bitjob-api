@@ -177,7 +177,7 @@ REDIS_PASSWORD = env.str('REDIS_PASSWORD', default='')
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://:KqTbHKBtmkKG1udnzNufb7rY@fuji.liara.cloud:32975/0",
+        "LOCATION": f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -185,8 +185,8 @@ CACHES = {
 }
 
 
-CELERY_BROKER_URL = "redis://:KqTbHKBtmkKG1udnzNufb7rY@fuji.liara.cloud:32975/0"
-CELERY_RESULT_BACKEND = "redis://:KqTbHKBtmkKG1udnzNufb7rY@fuji.liara.cloud:32975/0"
+CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
+CELERY_RESULT_BACKEND = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_CACHE_BACKEND = 'default'
 CELERY_TASK_SERIALIZER = 'json'
