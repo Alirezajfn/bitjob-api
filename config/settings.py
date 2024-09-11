@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_spectacular',
     'corsheaders',
+    'django_celery_results',
 
     # Bitjob Apps
     'authentications.apps.AuthenticationsConfig',
@@ -118,7 +119,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 
@@ -167,6 +168,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = env.str("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'info@bitjobs.ir'
 
 REDIS_HOST = env.str('REDIS_HOST', default='localhost')
 REDIS_PORT = env.int('REDIS_PORT', default='6379')
@@ -175,7 +177,7 @@ REDIS_PASSWORD = env.str('REDIS_PASSWORD', default='')
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0",
+        "LOCATION": "redis://:KqTbHKBtmkKG1udnzNufb7rY@fuji.liara.cloud:32975/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -183,16 +185,13 @@ CACHES = {
 }
 
 
-CELERY_BROKER_URL = f"redis://{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
-CELERY_RESULT_BACKEND = 'django-db'
-CELERY_CACHE_BACKEND = 'django-cache'
+CELERY_BROKER_URL = "redis://:KqTbHKBtmkKG1udnzNufb7rY@fuji.liara.cloud:32975/0"
+CELERY_RESULT_BACKEND = "redis://:KqTbHKBtmkKG1udnzNufb7rY@fuji.liara.cloud:32975/0"
 CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_CACHE_BACKEND = 'default'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_IMPORTS = [
-    'background_tasks.tasks',
-]
+CELERY_TIMEZONE = 'Asia/Tehran'
 
 
 CODE_EXPIRY_MINUTES = env.int('CODE_MINUTES_EXPIRE_AT', default=4)
