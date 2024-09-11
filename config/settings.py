@@ -1,12 +1,13 @@
 import os
 import pathlib
+from datetime import timedelta
 from pathlib import Path
 
 import environ
 from django.utils.translation import gettext_lazy as _
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
@@ -34,8 +35,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Third Party
     'rest_framework',
+    'rest_framework_simplejwt',
+    'django_filters',
+    'drf_spectacular',
+    'corsheaders',
+    'django_celery_results',
 
+    # Bitjob Apps
+    'authentications.apps.AuthenticationsConfig',
+    'users.apps.UsersConfig',
     'mail.apps.MailConfig',
 ]
 
@@ -75,8 +85,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env.str('DB_NAME', default='bitjob'),
+        'USER': env.str('DB_USER', default='bitjob'),
+        'PASSWORD': env.str('DB_PASSWORD', default='bitjob'),
+        'HOST': env.str('DB_HOST', default='localhost'),
+        'PORT': env.str('DB_PORT', default='5432'),
     }
 }
 
@@ -105,7 +119,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 
@@ -122,9 +136,70 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=60),
+    "USER_ID_FIELD": "username",
+    "USER_ID_CLAIM": "username",
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Bitjob API',
+    'DESCRIPTION': 'Your project description',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+AUTH_USER_MODEL = 'users.User'
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.c1.liara.email'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = env.str("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'info@bitjobs.ir'
+
+REDIS_HOST = env.str('REDIS_HOST', default='localhost')
+REDIS_PORT = env.int('REDIS_PORT', default='6379')
+REDIS_PASSWORD = env.str('REDIS_PASSWORD', default='')
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://:KqTbHKBtmkKG1udnzNufb7rY@fuji.liara.cloud:32975/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+
+CELERY_BROKER_URL = "redis://:KqTbHKBtmkKG1udnzNufb7rY@fuji.liara.cloud:32975/0"
+CELERY_RESULT_BACKEND = "redis://:KqTbHKBtmkKG1udnzNufb7rY@fuji.liara.cloud:32975/0"
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_CACHE_BACKEND = 'default'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Tehran'
+
+
+CODE_EXPIRY_MINUTES = env.int('CODE_MINUTES_EXPIRE_AT', default=4)
+EMAIL_STAY_VERIFIED_DURATION_MINUTEST = 10
+LENGTH_OF_TOKEN_CODE = 6
+
+VERIFIED_REGISTERED_EMAIL_REDIS_KEY_POSTFIX = '_VERIFIED'
+REGISTRATION_EMAIL_REDIS_KEY_POSTFIX = '_REGISTRATION'
+
+VERIFIED_FORGET_PASSWORD_EMAIL_REDIS_KEY_POSTFIX = '_VERIFIED_FORGET_PASSWORD'
+FORGET_PASSWORD_EMAIL_REDIS_KEY_POSTFIX = '_FORGET_PASSWORD'
