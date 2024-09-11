@@ -18,7 +18,7 @@ class MailSenderManager:
         if self.connection is None:
             self.connection = get_connection(settings.EMAIL_BACKEND)
 
-    def send(self, to_email: list, message: str, title: str, **kwargs):
+    def send(self, to_email: str, message: str, title: str, **kwargs):
         """
         This method is responsible for sending emails using django core mail
         :param to_email: list of emails
@@ -28,10 +28,11 @@ class MailSenderManager:
         :return: number of successful emails
         """
         try:
+            email_list = to_email.split(',')
             successes = django_mail.send_mail(subject=title,
                                               message=message,
-                                              from_email=settings.env('EMAIL_HOST_USER'),
-                                              recipient_list=to_email,
+                                              from_email=settings.DEFAULT_FROM_EMAIL,
+                                              recipient_list=email_list,
                                               connection=self.connection,
                                               **kwargs
                                               )
