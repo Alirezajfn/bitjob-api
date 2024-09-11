@@ -10,3 +10,5 @@ router.register('', ProjectViewSet, basename='project')
 urlpatterns = [
 
 ]
+
+urlpatterns += router.urls
