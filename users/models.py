@@ -5,6 +5,10 @@ from django.utils.translation import gettext_lazy as _
 from users.managers import CustomUserManager
 
 
+def user_directory_path(instance, filename):
+    return f'users_avatars/{instance.username}_avatar'
+
+
 class User(AbstractUser):
     objects = CustomUserManager()
     USERNAME_FIELD = "email"
@@ -14,6 +18,7 @@ class User(AbstractUser):
 
     email = models.EmailField(unique=True)
     mobile = models.CharField(max_length=11, unique=True, null=True)
+    avatar = models.ImageField(upload_to=user_directory_path, null=True, blank=True)
 
     class Meta:
         indexes = [

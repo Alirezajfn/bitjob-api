@@ -15,7 +15,8 @@ class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
             'mobile',
             'first_name',
             'last_name',
-            'last_login'
+            'last_login',
+            'avatar'
 
         ]
 
@@ -32,6 +33,7 @@ class UserRetrieveUpdateSerializer(serializers.ModelSerializer):
                 ValidationError(_('Chosen Username Exists'))
 
         return attrs
+
 
 class UserChangePasswordSerializer(serializers.Serializer):
     previous_password = serializers.CharField(max_length=128, write_only=True, required=True)
@@ -66,7 +68,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'mobile',
             'first_name',
             'last_name',
-            'last_login'
+            'last_login',
+            'avatar',
 
         ]
         read_only_fields = fields
