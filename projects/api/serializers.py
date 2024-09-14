@@ -2,10 +2,16 @@ from rest_framework import serializers
 from projects.models import Project, Category, Tag, ProjectFile
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategoryProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'description']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'description', 'image']
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -21,7 +27,7 @@ class ProjectFileSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True)
+    category = CategoryProductSerializer(read_only=True)
     category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source='category',
                                                      write_only=True)
 
