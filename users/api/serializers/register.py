@@ -97,7 +97,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        instance = get_user_model().objects.create(email=validated_data['email'])
+        instance = get_user_model().objects.create(email=validated_data['email'], username=validated_data['username'])
         instance.set_password(validated_data['password'])
         instance.save()
         return instance
