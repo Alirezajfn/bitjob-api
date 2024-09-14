@@ -1,8 +1,11 @@
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
-from projects.models import Project
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from projects.models import Project, Category
 from .filters import ProjectFilter
-from .serializers import ProjectSerializer
+from .serializers import ProjectSerializer, CategorySerializer
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -19,3 +22,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
+
+
+class ProjectCategoryListView(APIView):
+    serializer_class = CategorySerializer
+    # return 8 categories
+    queryset = Category.objects.all()[:8]
+
+    def get(self, request):
+        serializer = CategorySerializer(self.queryset, many=True)
+        return Response(serializer.data, status=200)
