@@ -27,42 +27,41 @@ class ProjectFileSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
-    category = CategoryProductSerializer(read_only=True)
-    category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source='category',
-                                                     write_only=True)
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all(),
+        read_only=False
+    )
 
-    tags = TagSerializer(many=True, read_only=True)
-    tag_ids = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True, source='tags',
-                                                 write_only=True)
+    tags = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Tag.objects.all(),
+        many=True,
+        read_only=False
+    )
 
     files = ProjectFileSerializer(many=True, read_only=True)
 
     class Meta:
         model = Project
         fields = [
-            'title', 'description', 'category', 'category_id', 'tags', 'tag_ids',
-            'owner', 'budget', 'deadline', 'status', 'files', 'created_at', 'updated_at', 'slug'
+            'title', 'description', 'category', 'tags', 'owner',
+            'budget', 'deadline', 'status', 'files',
+            'created_at', 'updated_at', 'slug'
         ]
 
     def create(self, validated_data):
-        category = validated_data.pop('category')
-        tags = validated_data.pop('tags')
-
+        tags = validated_data.pop('tags', [])
         project = Project.objects.create(**validated_data)
-
-        project.category = category
         project.tags.set(tags)
         project.save()
 
         return project
 
     def update(self, instance, validated_data):
-        category = validated_data.pop('category', None)
         tags = validated_data.pop('tags', None)
 
-        if category:
-            instance.category = category
-        if tags:
+        if tags is not None:
             instance.tags.set(tags)
 
         instance.title = validated_data.get('title', instance.title)

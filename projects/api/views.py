@@ -18,6 +18,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProjectFilter
 
+    lookup_field = 'slug'
+
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
