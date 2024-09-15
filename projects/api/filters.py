@@ -1,11 +1,10 @@
 import django_filters
-from projects.models import Project
+from projects.models import Project, Tag
 
 
 class ProjectFilter(django_filters.FilterSet):
-    category = django_filters.NumberFilter(field_name='category__id')
-
-    tags = django_filters.ModelMultipleChoiceFilter(queryset=Project.objects.all())
+    category = django_filters.CharFilter(field_name='category__slug', lookup_expr='exact')
+    tags = django_filters.ModelMultipleChoiceFilter(queryset=Tag.objects.all(), field_name='tags__slug')
 
     min_budget = django_filters.NumberFilter(field_name='budget', lookup_expr='gte')
     max_budget = django_filters.NumberFilter(field_name='budget', lookup_expr='lte')

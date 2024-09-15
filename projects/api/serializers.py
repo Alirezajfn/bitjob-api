@@ -5,25 +5,25 @@ from projects.models import Project, Category, Tag, ProjectFile
 class CategoryProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name', 'description']
+        fields = ['name', 'description', 'slug']
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name', 'description', 'image']
+        fields = ['name', 'description', 'image', 'slug']
 
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ['id', 'name']
+        fields = ['name', 'slug']
 
 
 class ProjectFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectFile
-        fields = ['id', 'file', 'uploaded_at']
+        fields = ['file', 'uploaded_at']
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -40,8 +40,8 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = [
-            'id', 'title', 'description', 'category', 'category_id', 'tags', 'tag_ids',
-            'owner', 'budget', 'deadline', 'status', 'files', 'created_at', 'updated_at'
+            'title', 'description', 'category', 'category_id', 'tags', 'tag_ids',
+            'owner', 'budget', 'deadline', 'status', 'files', 'created_at', 'updated_at', 'slug'
         ]
 
     def create(self, validated_data):
