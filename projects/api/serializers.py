@@ -17,7 +17,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ['name', 'slug']
+        fields = ['id', 'name']
 
 
 class ProjectFileSerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     )
 
     tags = serializers.SlugRelatedField(
-        slug_field='slug',
+        slug_field='name',
         queryset=Tag.objects.all(),
         many=True,
         read_only=False
