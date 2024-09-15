@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
@@ -24,11 +25,22 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
-class ProjectCategoryListView(APIView):
-    serializer_class = CategorySerializer
-    # return 8 categories
-    queryset = Category.objects.all()[:8]
+class CategoryListAPIView(APIView):
 
-    def get(self, request):
-        serializer = CategorySerializer(self.queryset, many=True)
-        return Response(serializer.data, status=200)
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='limit', description='Limit the number of categories returned', required=False, type=int),
+        ],
+        responses=CategorySerializer(many=True)
+    )
+    def get(self, request, *args, **kwargs):
+        limit = request.query_params.get('limit', None)
+        if limit:
+            limit = int(limit)
+            categories = Category.objects.all()[:limit]
+        else:
+            categories = Category.objects.all()
+
+        serializer = CategorySerializer(categories, many=True)
+
+        return Response(serializer.data)
