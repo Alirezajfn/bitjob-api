@@ -13,12 +13,16 @@ from rest_framework.permissions import IsAuthenticated
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated]
 
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProjectFilter
 
     lookup_field = 'slug'
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAuthenticated()]
+        return []
 
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
